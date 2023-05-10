@@ -3,6 +3,8 @@ package com.vladesire.vkfilemanager.ui
 import android.content.Intent
 import android.os.Environment
 import android.webkit.MimeTypeMap
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,15 +37,16 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.flowlayout.FlowRow
-import com.vladesire.vkfilemanager.FileInfo
 import com.vladesire.vkfilemanager.FileManagerUIState
 import com.vladesire.vkfilemanager.FileManagerViewModel
+import com.vladesire.vkfilemanager.FileManagerViewModelFactory
+import com.vladesire.vkfilemanager.HashUiState
 import com.vladesire.vkfilemanager.R
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
-import java.util.concurrent.TimeUnit
 
 
 fun Long.memorySize(): String {
@@ -57,43 +61,66 @@ fun Long.memorySize(): String {
     }
 }
 
+fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x".format(eachByte) }
+
+data class FileInfo(
+    val file: File,
+    val attributes: BasicFileAttributes,
+)
+
 @Composable
 fun FileManagerScreen(
-    viewModel: FileManagerViewModel = viewModel()
+    viewModel: FileManagerViewModel = viewModel(
+        factory = FileManagerViewModelFactory()
+    )
 ) {
     var ext = remember { Environment.getExternalStorageDirectory() }
     var root by remember { mutableStateOf(ext) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(key1 = null) {
+        viewModel.startHashingFiles()
+    }
+
     Scaffold (
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("$root")
-                },
-                navigationIcon = {
-                    IconButton(
-                        enabled = root != ext,
-                        onClick = {
-                            root = root.parentFile
+            Column() {
+                TopAppBar(
+                    title = {
+                        Text("$root")
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            enabled = root != ext,
+                            onClick = {
+                                root = root.parentFile
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_back),
+                                contentDescription = "Back icon",
+                                modifier = Modifier
+                                    .size(32.dp)
+                            )
                         }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = "Back icon",
-                            modifier = Modifier
-                                .size(32.dp)
-                        )
                     }
+                )
+                val text = when (uiState.hash) {
+                    HashUiState.Scanning -> "Scanning"
+                    HashUiState.Hashing -> "Hashing ${uiState.hashedFiles} / ${uiState.filesNumber} [changed: ${uiState.filesChanged}]"
+                    HashUiState.Done -> "Done"
                 }
-            )
+                Text(text, modifier = Modifier.fillMaxWidth().background(Color(0xFFFFCDD2)).padding(8.dp))
+            }
+
+
         }
     ) { paddingValues ->
 
         FileManagerScreen(
             folder = root,
-            uiState = uiState,
-            updateUIState = viewModel::updateUIState,
+            fileManagerUiState = uiState.fileManager,
+            updateUIState = viewModel::updateFileManagerUIState,
             goTo = { folder ->
                 root = folder
             },
@@ -112,7 +139,7 @@ private data class SortButtonState(
 @Composable
 fun FileManagerScreen(
     folder: File,
-    uiState: FileManagerUIState,
+    fileManagerUiState: FileManagerUIState,
     updateUIState: (FileManagerUIState) -> Unit,
     goTo: (File) -> Unit,
     modifier: Modifier = Modifier
@@ -145,7 +172,7 @@ fun FileManagerScreen(
                 items(sortButtons) { button ->
                     Button(
                         onClick = {
-                            if (uiState == button.asc) {
+                            if (fileManagerUiState == button.asc) {
                                 updateUIState(button.desc)
                             } else {
                                 updateUIState(button.asc)
@@ -158,8 +185,8 @@ fun FileManagerScreen(
                         ) {
                             Text(button.name)
 
-                            if (uiState == button.asc || uiState == button.desc) {
-                                val icon = if (uiState == button.asc) {
+                            if (fileManagerUiState == button.asc || fileManagerUiState == button.desc) {
+                                val icon = if (fileManagerUiState == button.asc) {
                                     R.drawable.ic_down
                                 } else {
                                     R.drawable.ic_up
@@ -174,12 +201,13 @@ fun FileManagerScreen(
                                     )
                             }
 
-
                         }
                     }
                 }
             }
         }
+
+
 
         folder.listFiles()?.let { files ->
 
@@ -191,7 +219,7 @@ fun FileManagerScreen(
             }
 
             // It really works
-            val sorted = when (uiState) {
+            val sorted = when (fileManagerUiState) {
                 FileManagerUIState.SORT_NAME_ASC -> {
                     fileInfos.sortedBy { it.file.name }
                 }
@@ -219,10 +247,6 @@ fun FileManagerScreen(
             }
 
             items(sorted) { fileInfo ->
-
-//                        val attrs = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
-
-//                        fileInfo.file.toUri()
 
                 Card(
                     backgroundColor = Color(0xFFFFEBEE),

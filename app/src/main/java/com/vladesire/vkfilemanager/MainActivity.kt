@@ -40,6 +40,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import com.vladesire.vkfilemanager.ui.FileManagerScreen
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -136,217 +137,220 @@ class MainActivity : ComponentActivity() {
 
 
 
-        setContent {
-
-            val permission = rememberPermissionState(permission = Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-
-            val context = LocalContext.current
-
-
-            var root by remember { mutableStateOf(ext) }
-
-//            LazyColumn() {
-//                items(filenames) {
-//                    Text("[${it.id}] ${it.name}", Modifier.padding(8.dp))
+//        setContent {
+//
+//            val permission = rememberPermissionState(permission = Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+//
+//            val context = LocalContext.current
+//
+//
+//            var root by remember { mutableStateOf(ext) }
+//
+////            LazyColumn() {
+////                items(filenames) {
+////                    Text("[${it.id}] ${it.name}", Modifier.padding(8.dp))
+////                }
+////            }
+//
+//            var sortType by remember { mutableStateOf(1) }
+//
+//            LazyColumn (
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//            ) {
+//
+//                item {
+//                    if (!permission.status.isGranted) {
+//
+//                        Button(onClick = { permission.launchPermissionRequest() }) {
+//                            Text("Request Permission")
+//                        }
+//
+////                LaunchedEffect(key1 = null) {
+////
+////                }
+//                    }
+//                }
+//
+//                item {
+//                    Text("volume: $volume")
+//                    Text("volume name: $name")
+//                }
+//
+//                item {
+//                    Text("$root")
+//                }
+//
+//
+//                if (root != ext) {
+//                    item {
+//                        Button(onClick = { root = root.parentFile }) {
+//                            Text("BACK")
+//                        }
+//                    }
+//                }
+//
+//
+//                val sortTypes = listOf(1, 2, 3, 4, 5, 6)
+//
+//                items(sortTypes) { type ->
+//                    Row() {
+//                        Button(onClick = { sortType = type }) {
+//                            Text("$type")
+//                        }
+//                    }
+//                }
+//
+//                root.listFiles()?.let { files ->
+//
+//                    val fileInfos = files.map { file ->
+//                        FileInfo(
+//                            file,
+//                            Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+//                        )
+//                    }
+//
+//
+//                    // It really works
+//                    val sorted = when (sortType) {
+//                        2-> {
+//                            fileInfos.sortedBy { it.file.name }.reversed()
+//                        }
+//                        3 -> {
+//                            fileInfos.sortedBy { it.attributes.creationTime() }
+//                        }
+//                        4 -> {
+//                            fileInfos.sortedBy { it.attributes.creationTime() }.reversed()
+//                        }
+//                        5 -> {
+//                            fileInfos.sortedBy { it.file.extension }
+//                        }
+//                        6 -> {
+//                            fileInfos.sortedBy { it.file.extension }.reversed()
+//                        }
+//
+//                        // 1 and default
+//                        else -> {
+//                            fileInfos.sortedBy { it.file.name }
+//                        }
+//                    }
+//                    items(sorted) { fileInfo ->
+//
+////                        val attrs = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+//
+////                        fileInfo.file.toUri()
+//
+//                        // TODO: BUG; I SHOULD FALSE IT ON REDRAW (NEW LIST)
+//                        // TODO: I SHOULD ZERO THE WHOLE LAZYCOLUMN!!
+//                        var expanded by remember {
+//                            mutableStateOf(false)
+//                        }
+//
+//                        Card(
+//                            backgroundColor = Color(0xFFFFEBEE),
+//                            modifier = Modifier
+//                                .padding(4.dp)
+//                                .fillMaxWidth()
+//                                .clickable {
+//                                    if (fileInfo.file.isDirectory) {
+//                                        root = fileInfo.file
+//                                    } else {
+//                                        expanded = !expanded
+//                                    }
+//                                }
+//                        ) {
+//                            Column() {
+//                                Text("${fileInfo.attributes.size()}; ${fileInfo.attributes.creationTime()}; ${fileInfo.attributes.lastModifiedTime()}")
+//                                Row(
+//                                    verticalAlignment = Alignment.CenterVertically,
+//                                    modifier = Modifier
+//                                        .padding(horizontal = 8.dp, vertical = 16.dp)
+//                                ) {
+//
+//                                    val icons = mapOf("jpg" to R.drawable.ic_add, "mp4" to R.drawable.metrics)
+//
+//                                    val icon = if (fileInfo.file.isDirectory) {
+//                                        R.drawable.dumbbell
+//                                    } else {
+//                                        icons[fileInfo.file.extension] ?: R.drawable.pen
+//                                    }
+//
+//                                    Icon(painter = painterResource(id = icon), contentDescription = "File icon",
+//                                        Modifier
+//                                            .size(24.dp)
+//                                            .padding(4.dp))
+//
+//                                    if (fileInfo.file.isDirectory) {
+//                                        Text("DIR: ${fileInfo.file.name}")
+//
+//                                    } else {
+//                                        Text("${fileInfo.file.extension}: ${fileInfo.file.name}")
+//
+//                                    }
+//                                }
+//                                if (expanded) {
+////                                    val size = if (file.length() / (1024*1024*1024) > 0) {
+////                                        "${file.length() / (1024.0*1024*1024)} GB"
+////                                    } else if (file.length() / (1024*1024) > 0) {
+////                                        "${file.length()/ (1024.0*1024)} MB"
+////                                    } else if (file.length() / 1024 > 0) {
+////                                        "${file.length() / 1024.0} KB"
+////                                    } else {
+////                                        "${file.length()} Bytes"
+////                                    }
+//                                    Text("SIZE = ${fileInfo.attributes.size()}")
+//
+//                                    Row() {
+//                                        Button(
+//                                            onClick = {
+//                                                val fileUri = FileProvider.getUriForFile(context, "com.vladesire.vkfilemanager.fileprovider", fileInfo.file)
+//
+//                                                // Without setting type almost no application can handle it
+//                                                val type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileInfo.file.extension)
+//
+//
+//                                                val intent = Intent(Intent.ACTION_VIEW)
+//                                                intent.setDataAndType(fileUri, type)
+//                                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//
+//
+//                                                val chooser = Intent.createChooser(intent, "Open with")
+//
+//                                                context.startActivity(chooser)
+//                                            }
+//                                        ) {
+//                                            Text("OPEN")
+//                                        }
+//                                        Button(onClick = {
+//                                            val fileUri = FileProvider.getUriForFile(context, "com.vladesire.vkfilemanager.fileprovider", fileInfo.file)
+//                                            val fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileInfo.file.extension)
+//
+//                                            val intent = Intent(Intent.ACTION_SEND).apply {
+//                                                type = fileType
+//                                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+//                                                putExtra(
+//                                                    Intent.EXTRA_SUBJECT,
+//                                                    "Hello from the coolest file manager"
+//                                                )
+//                                                putExtra(Intent.EXTRA_STREAM, fileUri)
+//                                            }
+//
+//                                            startActivity(Intent.createChooser(intent, "Send with"))
+//
+//                                        }) {
+//                                            Text("SHARE")
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
 //                }
 //            }
+//        }
 
-            var sortType by remember { mutableStateOf(1) }
-
-            LazyColumn (
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-
-                item {
-                    if (!permission.status.isGranted) {
-
-                        Button(onClick = { permission.launchPermissionRequest() }) {
-                            Text("Request Permission")
-                        }
-
-//                LaunchedEffect(key1 = null) {
-//
-//                }
-                    }
-                }
-
-                item {
-                    Text("volume: $volume")
-                    Text("volume name: $name")
-                }
-
-                item {
-                    Text("$root")
-                }
-
-
-                if (root != ext) {
-                    item {
-                        Button(onClick = { root = root.parentFile }) {
-                            Text("BACK")
-                        }
-                    }
-                }
-
-
-                val sortTypes = listOf(1, 2, 3, 4, 5, 6)
-
-                items(sortTypes) { type ->
-                    Row() {
-                        Button(onClick = { sortType = type }) {
-                            Text("$type")
-                        }
-                    }
-                }
-
-                root.listFiles()?.let { files ->
-
-                    val fileInfos = files.map { file ->
-                        FileInfo(
-                            file,
-                            Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
-                        )
-                    }
-
-
-                    // It really works
-                    val sorted = when (sortType) {
-                        2-> {
-                            fileInfos.sortedBy { it.file.name }.reversed()
-                        }
-                        3 -> {
-                            fileInfos.sortedBy { it.attributes.creationTime() }
-                        }
-                        4 -> {
-                            fileInfos.sortedBy { it.attributes.creationTime() }.reversed()
-                        }
-                        5 -> {
-                            fileInfos.sortedBy { it.file.extension }
-                        }
-                        6 -> {
-                            fileInfos.sortedBy { it.file.extension }.reversed()
-                        }
-
-                        // 1 and default
-                        else -> {
-                            fileInfos.sortedBy { it.file.name }
-                        }
-                    }
-                    items(sorted) { fileInfo ->
-
-//                        val attrs = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
-
-//                        fileInfo.file.toUri()
-
-                        // TODO: BUG; I SHOULD FALSE IT ON REDRAW (NEW LIST)
-                        // TODO: I SHOULD ZERO THE WHOLE LAZYCOLUMN!!
-                        var expanded by remember {
-                            mutableStateOf(false)
-                        }
-
-                        Card(
-                            backgroundColor = Color(0xFFFFEBEE),
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth()
-                                .clickable {
-                                    if (fileInfo.file.isDirectory) {
-                                        root = fileInfo.file
-                                    } else {
-                                        expanded = !expanded
-                                    }
-                                }
-                        ) {
-                            Column() {
-                                Text("${fileInfo.attributes.size()}; ${fileInfo.attributes.creationTime()}; ${fileInfo.attributes.lastModifiedTime()}")
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp, vertical = 16.dp)
-                                ) {
-
-                                    val icons = mapOf("jpg" to R.drawable.ic_add, "mp4" to R.drawable.metrics)
-
-                                    val icon = if (fileInfo.file.isDirectory) {
-                                        R.drawable.dumbbell
-                                    } else {
-                                        icons[fileInfo.file.extension] ?: R.drawable.pen
-                                    }
-
-                                    Icon(painter = painterResource(id = icon), contentDescription = "File icon",
-                                        Modifier
-                                            .size(24.dp)
-                                            .padding(4.dp))
-
-                                    if (fileInfo.file.isDirectory) {
-                                        Text("DIR: ${fileInfo.file.name}")
-
-                                    } else {
-                                        Text("${fileInfo.file.extension}: ${fileInfo.file.name}")
-
-                                    }
-                                }
-                                if (expanded) {
-//                                    val size = if (file.length() / (1024*1024*1024) > 0) {
-//                                        "${file.length() / (1024.0*1024*1024)} GB"
-//                                    } else if (file.length() / (1024*1024) > 0) {
-//                                        "${file.length()/ (1024.0*1024)} MB"
-//                                    } else if (file.length() / 1024 > 0) {
-//                                        "${file.length() / 1024.0} KB"
-//                                    } else {
-//                                        "${file.length()} Bytes"
-//                                    }
-                                    Text("SIZE = ${fileInfo.attributes.size()}")
-
-                                    Row() {
-                                        Button(
-                                            onClick = {
-                                                val fileUri = FileProvider.getUriForFile(context, "com.vladesire.vkfilemanager.fileprovider", fileInfo.file)
-
-                                                // Without setting type almost no application can handle it
-                                                val type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileInfo.file.extension)
-
-
-                                                val intent = Intent(Intent.ACTION_VIEW)
-                                                intent.setDataAndType(fileUri, type)
-                                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-
-                                                val chooser = Intent.createChooser(intent, "Open with")
-
-                                                context.startActivity(chooser)
-                                            }
-                                        ) {
-                                            Text("OPEN")
-                                        }
-                                        Button(onClick = {
-                                            val fileUri = FileProvider.getUriForFile(context, "com.vladesire.vkfilemanager.fileprovider", fileInfo.file)
-                                            val fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileInfo.file.extension)
-
-                                            val intent = Intent(Intent.ACTION_SEND).apply {
-                                                type = fileType
-                                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                                putExtra(
-                                                    Intent.EXTRA_SUBJECT,
-                                                    "Hello from the coolest file manager"
-                                                )
-                                                putExtra(Intent.EXTRA_STREAM, fileUri)
-                                            }
-
-                                            startActivity(Intent.createChooser(intent, "Send with"))
-
-                                        }) {
-                                            Text("SHARE")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        setContent {
+            FileManagerScreen()
         }
-
     }
 }

@@ -20,12 +20,13 @@ import java.util.*
 class MyFileProvider : FileProvider(R.xml.provider_paths)
 
 
-// Application is built newer APIs: it targets Android 13, so it uses new policies towards storage usage
+// Application is built for newer APIs: it targets Android 13, so it uses new policies towards storage usage
 // Project is entirely written in Jetpack Compose
 // Database is powered by Room & Kotlin Coroutines
 
 // File system can be easily navigated
 // Press folder to open it, press file to fire intent ACTION_VIEW, click SHARE to fire ACTION_SEND
+// List of changed files can be displayed, but I had no time left to make it
 
 // Application is tested on Android 13 device
 

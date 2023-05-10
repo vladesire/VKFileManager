@@ -286,15 +286,18 @@ fun FileManagerScreen(
                                 .padding(horizontal = 8.dp, vertical = 16.dp)
                         ) {
 
-                            val icons = mapOf(
-                                "jpg" to R.drawable.ic_jpg,
-                                "mp4" to R.drawable.ic_mp4,
-                                "doc" to R.drawable.ic_doc,
-                                "docx" to R.drawable.ic_doc,
-                                "png" to R.drawable.ic_png,
-                                "txt" to R.drawable.ic_txt,
-                                "pdf" to R.drawable.ic_pdf
-                            )
+                            val icons = remember {
+                                mapOf(
+                                    "jpg" to R.drawable.ic_jpg,
+                                    "mp4" to R.drawable.ic_mp4,
+                                    "doc" to R.drawable.ic_doc,
+                                    "docx" to R.drawable.ic_doc,
+                                    "png" to R.drawable.ic_png,
+                                    "txt" to R.drawable.ic_txt,
+                                    "pdf" to R.drawable.ic_pdf
+                                )
+                            }
+
 
                             val icon = if (fileInfo.file.isDirectory) {
                                 R.drawable.ic_folder
@@ -328,30 +331,29 @@ fun FileManagerScreen(
                                 Text(SimpleDateFormat("MM/dd/yyyy").format(it.toMillis()), Modifier.padding(horizontal = 4.dp))
                             }
 
+                            if (fileInfo.file.isFile) {
+                                Button(onClick = {
+                                    val fileUri = FileProvider.getUriForFile(context, "com.vladesire.vkfilemanager.fileprovider", fileInfo.file)
+                                    val fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileInfo.file.extension)
 
-                        }
+                                    val intent = Intent(Intent.ACTION_SEND).apply {
+                                        type = fileType
+                                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                        putExtra(
+                                            Intent.EXTRA_SUBJECT,
+                                            "Hello from the coolest file manager"
+                                        )
+                                        putExtra(Intent.EXTRA_STREAM, fileUri)
+                                    }
 
-                        if (fileInfo.file.isFile) {
-                            Button(onClick = {
-                                val fileUri = FileProvider.getUriForFile(context, "com.vladesire.vkfilemanager.fileprovider", fileInfo.file)
-                                val fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileInfo.file.extension)
+                                    context.startActivity(Intent.createChooser(intent, "Send with"))
 
-                                val intent = Intent(Intent.ACTION_SEND).apply {
-                                    type = fileType
-                                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                    putExtra(
-                                        Intent.EXTRA_SUBJECT,
-                                        "Hello from the coolest file manager"
-                                    )
-                                    putExtra(Intent.EXTRA_STREAM, fileUri)
+                                }) {
+                                    Text("SHARE")
                                 }
-
-                                context.startActivity(Intent.createChooser(intent, "Send with"))
-
-                            }) {
-                                Text("SHARE")
                             }
                         }
+
 
 
                     }
